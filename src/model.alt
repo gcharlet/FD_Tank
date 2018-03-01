@@ -1,15 +1,15 @@
 node Valve
     state
-        flow : [0,2] : public;
+        stream : [0,2] : public;
         broken : bool;
     init
-        flow := 0;
+        stream := 0;
         broken := false;
     event
         inc, dec : public;
     trans
-        ~broken |- inc -> flow := flow+1;
-        ~broken |- dec -> flow := flow-1;
+        ~broken |- inc -> stream := stream+1;
+        ~broken |- dec -> stream := stream-1;
         ~broken |- inc -> broken := true;
         ~broken |- dec -> broken := true;
         broken |- inc ->;
@@ -27,12 +27,12 @@ node Tank
     event
         time
     trans
-        amont > aval |- time -> level : level+1;
-        amont < aval |- time -> level : level-1;
+        amont > aval |- time -> level := level+1;
+        amont < aval |- time -> level := level-1;
         (amont = aval) & (amont = 0) |- time ->;
         (amont = aval) & (amont > 0) |- time ->;
-        (amont = aval) & (amont > 0) |- time -> level : level+1;
-        (amont = aval) & (amont > 0) |- time -> level : level-1;
+        (amont = aval) & (amont > 0) |- time -> level := level+1;
+        (amont = aval) & (amont > 0) |- time -> level := level-1;
 edon
 
 node Ctrl
@@ -45,8 +45,8 @@ node System
         C : Ctrl;
         V : Valve[3];
     assert
-        T.amont := (V[0].flow + V[1].flow);
-        T.aval := V[2].flow;
+        T.amont = (V[0].stream + V[1].stream);
+        T.aval = V[2].stream;
     state
         ctrl : bool;
     init
@@ -61,7 +61,37 @@ node System
         <env, T.time>;
         //les commandes
         <cmd, V[0].dec, V[1].dec, V[2].dec>;
+        <cmd, V[0].dec, V[1].dec, V[2].inc>;
+        <cmd, V[0].dec, V[1].inc, V[2].dec>;
+        <cmd, V[0].dec, V[1].inc, V[2].inc>;
+        <cmd, V[0].inc, V[1].dec, V[2].dec>;
+        <cmd, V[0].inc, V[1].dec, V[2].inc>;
+        <cmd, V[0].inc, V[1].inc, V[2].dec>;
         <cmd, V[0].inc, V[1].inc, V[2].inc>;
+
+ 
         <cmd, V[0].dec, V[1].dec>;
+        <cmd, V[0].dec, V[1].inc>;
+        <cmd, V[0].inc, V[1].dec>;
+        <cmd, V[0].inc, V[1].inc>;
+
+        <cmd, V[0].dec, V[2].dec>;
+        <cmd, V[0].dec, V[2].inc>;
+        <cmd, V[0].inc, V[2].dec>;
+        <cmd, V[0].inc, V[2].inc>;
+
+        <cmd, V[2].dec, V[1].dec>;
+        <cmd, V[2].dec, V[1].inc>;
+        <cmd, V[2].inc, V[1].dec>;
+        <cmd, V[2].inc, V[1].inc>;
+
+        <cmd, V[0].dec>;
+        <cmd, V[0].inc>;
+        <cmd, V[1].dec>;
+        <cmd, V[1].inc>;
+        <cmd, V[2].dec>;
+        <cmd, V[2].inc>;
+        <cmd>;
+
 
 edon
