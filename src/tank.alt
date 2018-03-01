@@ -1,0 +1,181 @@
+node Valve
+    state
+        stream : [0,2] : public;
+        broken : bool;
+    init
+        stream := 0;
+        broken := false;
+    event
+        inc, dec : public;
+    trans
+        ~broken |- inc -> stream := stream+1;
+        ~broken |- dec -> stream := stream-1;
+        ~broken |- inc -> broken := true;
+        ~broken |- dec -> broken := true;
+        ~broken & stream=0 |- dec -> ;
+        ~broken & stream=2 |- inc -> ;
+        broken |- inc ->;
+        broken |- dec ->;
+edon
+
+node Tank
+    state
+        level : [0,4] : public;
+    init
+        level := 2;
+    flow
+        amont : [0,4];
+        aval: [0,2];
+    event
+        time
+    trans
+        amont < aval |- time -> level := level-1;
+        amont < aval & level=0 |- time -> ;
+        amont > aval |- time -> level := level+1;
+        amont > aval & level=4 |- time -> ;
+        (amont = aval) & (amont = 0) |- time ->;
+        (amont = aval) & (amont > 0) |- time ->;
+        (amont = aval) & (amont > 0) |- time -> level := level+1;
+        (amont = aval) & (amont > 0) |- time -> level := level-1;
+edon
+
+node Ctrl
+    flow
+        stream : [0,2][3];
+        level : [0,4];
+    event
+        /* 27 commandes
+         * code : "d" pour dec, "i" pour inc, "n" pour nop
+         */
+
+        ddd, ddi, ddn, did, dii, din, dnd, dni, dnn,
+        idd, idi, idn, iid, iii, iin, ind, ini, inn,
+        ndd, ndi, ndn, nid, nii, nin, nnd, nni, nnn;
+
+    trans
+        true |- ddd, ddi, ddn, did, dii, din, dnd, dni, dnn,
+                idd, idi, idn, iid, iii, iin, ind, ini, inn,
+                ndd, ndi, ndn, nid, nii, nin, nnd, nni, nnn
+             -> ;
+edon
+
+node SystemV0
+    sub
+        T : Tank;
+        C : Ctrl;
+        V : Valve[3];
+    assert
+        T.amont = (V[0].stream + V[1].stream);
+        T.aval = V[2].stream;
+        C.stream[0] = V[0].stream;
+        C.stream[1] = V[1].stream;
+        C.stream[2] = V[2].stream;
+        C.level = T.level;
+    state
+        ctrl : bool;
+    init
+        ctrl := true;
+    event
+        cmd, env;
+    trans
+        ctrl |- cmd -> ctrl := ~ctrl;
+        ~ctrl |- env -> ctrl := ~ctrl;
+    sync
+        //evolution de l'environnement
+        <env, T.time>;
+        //les commandes
+        <C.ddd, cmd, V[0].dec, V[1].dec, V[2].dec>;
+        <C.ddi, cmd, V[0].dec, V[1].dec, V[2].inc>;
+        <C.did, cmd, V[0].dec, V[1].inc, V[2].dec>;
+        <C.dii, cmd, V[0].dec, V[1].inc, V[2].inc>;
+        <C.idd, cmd, V[0].inc, V[1].dec, V[2].dec>;
+        <C.idi, cmd, V[0].inc, V[1].dec, V[2].inc>;
+        <C.iid, cmd, V[0].inc, V[1].inc, V[2].dec>;
+        <C.iii, cmd, V[0].inc, V[1].inc, V[2].inc>;
+
+ 
+        <C.ddn, cmd, V[0].dec, V[1].dec>;
+        <C.din, cmd, V[0].dec, V[1].inc>;
+        <C.idn, cmd, V[0].inc, V[1].dec>;
+        <C.iin, cmd, V[0].inc, V[1].inc>;
+
+        <C.dnd, cmd, V[0].dec, V[2].dec>;
+        <C.dni, cmd, V[0].dec, V[2].inc>;
+        <C.ind, cmd, V[0].inc, V[2].dec>;
+        <C.ini, cmd, V[0].inc, V[2].inc>;
+
+        <C.ndd, cmd, V[2].dec, V[1].dec>;
+        <C.ndi, cmd, V[2].dec, V[1].inc>;
+        <C.nid, cmd, V[2].inc, V[1].dec>;
+        <C.nii, cmd, V[2].inc, V[1].inc>;
+
+        <C.dnn, cmd, V[0].dec>;
+        <C.inn, cmd, V[0].inc>;
+        <C.ndn, cmd, V[1].dec>;
+        <C.nin, cmd, V[1].inc>;
+        <C.nnd, cmd, V[2].dec>;
+        <C.nni, cmd, V[2].inc>;
+        <C.nnn, cmd>;
+
+edon
+
+node SystemV1
+    sub
+        T : Tank;
+        C : CtrlUn;
+        V : Valve[3];
+    assert
+        T.amont = (V[0].stream + V[1].stream);
+        T.aval = V[2].stream;
+        C.stream[0] = V[0].stream;
+        C.stream[1] = V[1].stream;
+        C.stream[2] = V[2].stream;
+        C.level = T.level;
+    state
+        ctrl : bool;
+    init
+        ctrl := true;
+    event
+        cmd, env;
+    trans
+        ctrl |- cmd -> ctrl := ~ctrl;
+        ~ctrl |- env -> ctrl := ~ctrl;
+    sync
+        //evolution de l'environnement
+        <env, T.time>;
+        //les commandes
+        <C.ddd, cmd, V[0].dec, V[1].dec, V[2].dec>;
+        <C.ddi, cmd, V[0].dec, V[1].dec, V[2].inc>;
+        <C.did, cmd, V[0].dec, V[1].inc, V[2].dec>;
+        <C.dii, cmd, V[0].dec, V[1].inc, V[2].inc>;
+        <C.idd, cmd, V[0].inc, V[1].dec, V[2].dec>;
+        <C.idi, cmd, V[0].inc, V[1].dec, V[2].inc>;
+        <C.iid, cmd, V[0].inc, V[1].inc, V[2].dec>;
+        <C.iii, cmd, V[0].inc, V[1].inc, V[2].inc>;
+
+ 
+        <C.ddn, cmd, V[0].dec, V[1].dec>;
+        <C.din, cmd, V[0].dec, V[1].inc>;
+        <C.idn, cmd, V[0].inc, V[1].dec>;
+        <C.iin, cmd, V[0].inc, V[1].inc>;
+
+        <C.dnd, cmd, V[0].dec, V[2].dec>;
+        <C.dni, cmd, V[0].dec, V[2].inc>;
+        <C.ind, cmd, V[0].inc, V[2].dec>;
+        <C.ini, cmd, V[0].inc, V[2].inc>;
+
+        <C.ndd, cmd, V[2].dec, V[1].dec>;
+        <C.ndi, cmd, V[2].dec, V[1].inc>;
+        <C.nid, cmd, V[2].inc, V[1].dec>;
+        <C.nii, cmd, V[2].inc, V[1].inc>;
+
+        <C.dnn, cmd, V[0].dec>;
+        <C.inn, cmd, V[0].inc>;
+        <C.ndn, cmd, V[1].dec>;
+        <C.nin, cmd, V[1].inc>;
+        <C.nnd, cmd, V[2].dec>;
+        <C.nni, cmd, V[2].inc>;
+        <C.nnn, cmd>;
+
+
+edon
