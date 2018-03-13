@@ -24,7 +24,7 @@ Synthèse (assistée) d'un contrôleur du niveau d'une cuve}
 
 \date{}
 
-\author{Nom1 \and Nom2 \and Nom3}
+\author{Charlet Guillaume \and Fontaine Kenji}
 
 \maketitle
 
@@ -33,7 +33,11 @@ Synthèse (assistée) d'un contrôleur du niveau d'une cuve}
 
 \chapter{Le rapport}
 \section{Rôle de la constante {\tt nbFailures} (2 points)}
-% A COMPLETER en expliquant le rôle de la constante.
+La constante {\tt nbFailures} sert à compter le nombre de valves bloquées.
+La contrainte dans {\tt System.alt} permet de fixer le nombre maximale de
+valves bloquées à la fois. En modifiant la valeur de {\tt nbFailures} dans
+le fichier {\tt test.alt}, on peut ainsi modéliser 4 configurations
+différentes (valves parfaites, 1, 2 ou 3 valves pouvant se bloquer).
 
 \section{Résultats avec le contrôleur initial {\tt Ctrl}}
 \subsection{Calcul d'un contrôleur}
@@ -79,7 +83,10 @@ Synthèse (assistée) d'un contrôleur du niveau d'une cuve}
 % A COMPLETER en analysant les contrôleurs optimisés obtenus.
 
 \section{Rôle des composants {\tt ValveVirtual} et {\tt CtrlVV} (4 points)}
-% A COMPLETER en expliquant le mécanisme mis en oeuvre et son rôle.
+Le composant {\tt ValveVirtual} permet de simuler une valve en offrant la
+possibilité de détecter le bloquage d'une valve en comparant un flux théorique
+au flux observé. On l'utilise dans le composant {\tt CtrlVV} afin de détecter
+les bloquages dans l'ensemble du système réel.
 
 \section{Résultats avec le contrôleur initial {\tt CtrlVV}}
 \subsection{Calcul d'un contrôleur}
